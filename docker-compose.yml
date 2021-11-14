@@ -29,6 +29,14 @@ services:
       - zookeeper
       - kafka
       - pinot-controller
+  mysql:
+    image: debezium/example-mysql:1.4
+    ports:
+     - 3306:3306
+    environment:
+     - MYSQL_ROOT_PASSWORD=debezium
+     - MYSQL_USER=mysqluser
+     - MYSQL_PASSWORD=mysqlpw
   kafka:
     image: confluentinc/cp-enterprise-kafka:5.5.3
     container_name: kafka
@@ -39,6 +47,7 @@ services:
       - 9092:9092
     environment:
       KAFKA_BROKER_ID: 1
+      KAFKA_JMX_PORT: 9991
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
@@ -47,14 +56,40 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
-
   zookeeper:
-    image: confluentinc/cp-zookeeper:5.5.0
+    image: confluentinc/cp-zookeeper:5.5.3
     container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - "2181:2181"
+      - 2181:2181
+  connect:
+    image: debezium/connect:1.4
+    container_name: connect
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: connect_configs
+      OFFSET_STORAGE_TOPIC: connect_offsets
+      KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
+      VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+    depends_on: [kafka]
+    ports:
+      - 8083:8083
+  schema-registry:
+    image: confluentinc/cp-schema-registry:5.5.3
+    container_name: schema-registry
+    environment:
+     - SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL=zookeeper:2181
+     - SCHEMA_REGISTRY_HOST_NAME=schema-registry
+     - SCHEMA_REGISTRY_LISTENERS=http://schema-registry:8081,http://localhost:8081
+    depends_on: [zookeeper, kafka]
+  
+  kafkacat:
+    image: confluentinc/cp-kafkacat
+    container_name: kafkacat
+    command: sleep infinity
