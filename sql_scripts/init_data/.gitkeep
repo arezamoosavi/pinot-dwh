@@ -1,0 +1,7 @@
+# https://www.kaggle.com/arashnic/ctr-in-advertisement?select=Ad_Click_prediciton_test.csv
+
+# merge csv: cat *csv > ad_click_data.csv
+
+# lower case columns
+
+# csv to sql: https://sqlizer.io/#/

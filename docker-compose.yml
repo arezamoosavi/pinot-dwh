@@ -35,10 +35,11 @@ services:
      - 3306:3306
     environment:
      - MYSQL_ROOT_PASSWORD=debezium
+     - MYSQL_DATABASE=events_db
      - MYSQL_USER=mysqluser
      - MYSQL_PASSWORD=mysqlpw
     volumes:
-      - ./sql-scripts:/docker-entrypoint-initdb.d
+      - ./sql_scripts:/docker-entrypoint-initdb.d
   kafka:
     image: confluentinc/cp-enterprise-kafka:5.5.3
     container_name: kafka
