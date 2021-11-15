@@ -13,28 +13,49 @@ ps:
 down:
 	docker-compose down -v
 
+kafka:
+	docker-compose up -d zookeeper
+	sleep 5
+	docker-compose up -d kafka
+	sleep 5
+	docker-compose up -d schema-registry connect kafkacat
+
+start-mysql:
+	docker-compose up -d mysql
+
+stop-mysql:
+	docker-compose stop mysql
+	echo y | docker-compose rm mysql
+
+pinot:
+	docker-compose up -d zookeeper
+	sleep 5
+	docker-compose up -d pinot-controller
+	sleep 5
+	docker-compose up -d pinot-broker
+	sleep 5
+	docker-compose up -d pinot-server
+
 get-connectors:
 	curl http://localhost:8083/connectors
 
 create-connector:
-	curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/ -d @register-postgres.json
+	curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/ -d @register-mysql.json
 	# always, never, initial_only, exported, custom
-	# pgoutput wal2json
 
 delete-connector:
-	curl -X DELETE http://localhost:8083/connectors/bookings-connector
+	curl -X DELETE http://localhost:8083/connectors/ad_click-connector
 
 status-connector:
-	curl http://localhost:8083/connectors/bookings-connector/status
+	curl http://localhost:8083/connectors/ad_click-connector/status
 
 check-topic-registery:
 	docker-compose exec schema-registry \
 	kafka-avro-console-consumer --bootstrap-server kafka:9092 \
-	--topic postgres.public.bookings --from-beginning --max-messages 2
+	--topic mysql.events_db.ad_click --from-beginning --max-messages 2
 
 kafkacat:
 	docker-compose exec kafkacat \
 	kafkacat -b kafka:9092 -C -s key=avro -s value=avro \
 	-r http://schema-registry:8081 \
-	-t postgres.public.bookings -f 'Key: %k\nValue: %s\n'
-
+	-t mysql.events_db.ad_click -f 'Key: %k\nValue: %s\n'
