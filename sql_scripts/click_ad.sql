@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS events_db;
 
 CREATE TABLE IF NOT EXISTS events_db.ad_click (
-    `session_id` INT,
+    `session_id` INT NOT NULL PRIMARY KEY,
     `created` DATETIME,
     `user_id` INT,
     `product` VARCHAR(10) CHARACTER SET utf8,
