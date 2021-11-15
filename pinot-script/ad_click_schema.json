@@ -1,0 +1,21 @@
+{
+    "schemaName": "ad_click",
+    "dimensionFieldSpecs": [
+        {
+            "name": "session_id",
+            "dataType": "INT"
+        },
+        {
+            "name": "user_id",
+            "dataType": "INT"
+        }
+    ],
+    "dateTimeFieldSpecs": [
+        {
+            "name": "created",
+            "dataType": "LONG",
+            "format": "1:MILLISECONDS:EPOCH",
+            "granularity": "1:MILLISECONDS"
+        }
+    ]
+}
